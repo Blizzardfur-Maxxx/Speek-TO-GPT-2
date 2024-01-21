@@ -1,0 +1,8 @@
+
+models/124M/checkpoint
+models/124M/encoder.json
+models/124M/hparams.json
+models/124M/model.ckpt.index
+models/124M/model.ckpt.data-00000-of-00001
+models/124M/vocab.bpe
+models/124M/model.ckpt.meta

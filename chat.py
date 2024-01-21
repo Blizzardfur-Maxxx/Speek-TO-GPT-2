@@ -12,12 +12,18 @@ import tempfile
 tf.disable_v2_behavior()  # Use TensorFlow v1 behavior
 
 # Set the path to your locally fine-tuned GPT-2 model
-gpt2_model_path = "124M"
+gpt2_model_path = "models/124M"
+gpt2_model_path = os.path.abspath(gpt2_model_path)
 
-# Create a TensorFlow session and load the GPT-2 model
+# Create a TensorFlow session
 tf.compat.v1.reset_default_graph()
 sess = gpt2.start_tf_sess()
-gpt2.load_gpt2(sess, model_name=gpt2_model_path)
+
+# Try to load the GPT-2 model with error handling
+try:
+    gpt2.load_gpt2(sess, model_name=os.path.abspath(gpt2_model_path))
+except FileNotFoundError:
+    print(f"Error: The model files are not found in {gpt2_model_path}. Make sure the path is correct.")
 
 def convert_speech_to_text():
     recognizer = sr.Recognizer()
@@ -38,8 +44,10 @@ def convert_speech_to_text():
                 print(f"Error connecting to Google API: {e}")
 
 def load_encoder_file(model_path):
-    encoder_file_path = os.path.join(model_path, 'encoder.json')
-    
+    encoder_file_path = os.path.join(model_path, 'encoder.json')  # Corrected path
+
+    print("Full Encoder File Path:", encoder_file_path)  # Print full path for debugging
+
     try:
         with open(encoder_file_path, 'r') as f:
             encoder_content = json.load(f)
@@ -56,9 +64,13 @@ def generate_gpt2_response(user_input):
         print("Unable to load encoder file. Check for issues.")
         return None
 
-    response = gpt2.generate(sess, model_name=gpt2_model_path, prefix=user_input, length=124, return_as_list=True)[0]
+    # Specify the correct checkpoint directory explicitly
+    checkpoint_dir = gpt2_model_path  # Change this line
+
+    response = gpt2.generate(sess, model_name=checkpoint_dir, prefix=user_input, length=124, return_as_list=True)[0]
 
     return response
+
 
 def convert_text_to_audio_in_memory(text):
     tts = gTTS(text)
@@ -84,6 +96,7 @@ def play_audio_in_memory(audio_content):
 
 if __name__ == "__main__":
     while True:
+        print("Full Model Path:", os.path.abspath(os.path.join(os.getcwd(), gpt2_model_path)))
         user_input = convert_speech_to_text()
 
         if user_input:
